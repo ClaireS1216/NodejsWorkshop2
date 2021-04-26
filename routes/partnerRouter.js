@@ -1,5 +1,6 @@
 const express = require("express");
 const Partner = require("../models/partner");
+const authenticate = require("../authenticate");
 
 const partnerRouter = express.Router();
 
@@ -15,7 +16,7 @@ partnerRouter
       })
       .catch((err) => next(err));
   })
-  .post((req, res, next) => {
+  .post(authenticate.verifyUser, authenticate.verifyAdmin, (req, res, next) => {
     Partner.create(req.body)
       .then((partner) => {
         console.log("Partner Created ", partner);
@@ -25,19 +26,23 @@ partnerRouter
       })
       .catch((err) => next(err));
   })
-  .put((req, res) => {
+  .put(authenticate.verifyUser, (req, res) => {
     res.statusCode = 403;
     res.end("PUT operation not supported on /partners");
   })
-  .delete((req, res, next) => {
-    Partner.deleteMany()
-      .then((response) => {
-        res.statusCode = 200;
-        res.setHeader("Content-Type", "application/json");
-        res.json(response);
-      })
-      .catch((err) => next(err));
-  });
+  .delete(
+    authenticate.verifyUser,
+    authenticate.verifyAdmin,
+    (req, res, next) => {
+      Partner.deleteMany()
+        .then((response) => {
+          res.statusCode = 200;
+          res.setHeader("Content-Type", "application/json");
+          res.json(response);
+        })
+        .catch((err) => next(err));
+    }
+  );
 
 partnerRouter
   .route("/:partnerId/comments/:commentId")
@@ -60,13 +65,13 @@ partnerRouter
       })
       .catch((err) => next(err));
   })
-  .post((req, res) => {
+  .post(authenticate.verifyUser, (req, res) => {
     res.statusCode = 403;
     res.end(
       `POST operation not supported on /partners/${req.params.partnerId}/comments/${req.params.commentId}`
     );
   })
-  .put((req, res, next) => {
+  .put(authenticate.verifyUser, authenticate.verifyAdmin, (req, res, next) => {
     Partner.findById(req.params.partnerId)
       .then((partner) => {
         if (partner && partner.comments.id(req.params.commentId)) {
@@ -96,30 +101,34 @@ partnerRouter
       })
       .catch((err) => next(err));
   })
-  .delete((req, res, next) => {
-    Partner.findById(req.params.partnerId)
-      .then((partner) => {
-        if (partner && parnter.comments.id(req.params.commentId)) {
-          partner.comments.id(req.params.commentId).remove();
-          partner
-            .save()
-            .then((parnter) => {
-              res.statusCode = 200;
-              res.setHeader("Content-Type", "application/json");
-              res.json(parnter);
-            })
-            .catch((err) => next(err));
-        } else if (!parnter) {
-          err = new Error(`Parnter ${req.params.partnerId} not found`);
-          err.status = 404;
-          return next(err);
-        } else {
-          err = new Error(`Comment ${req.params.commentId} not found`);
-          err.status = 404;
-          return next(err);
-        }
-      })
-      .catch((err) => next(err));
-  });
+  .delete(
+    authenticate.verifyUser,
+    authenticate.verifyAdmin,
+    (req, res, next) => {
+      Partner.findById(req.params.partnerId)
+        .then((partner) => {
+          if (partner && partner.comments.id(req.params.commentId)) {
+            partner.comments.id(req.params.commentId).remove();
+            partner
+              .save()
+              .then((partner) => {
+                res.statusCode = 200;
+                res.setHeader("Content-Type", "application/json");
+                res.json(partner);
+              })
+              .catch((err) => next(err));
+          } else if (!parnter) {
+            err = new Error(`Parnter ${req.params.partnerId} not found`);
+            err.status = 404;
+            return next(err);
+          } else {
+            err = new Error(`Comment ${req.params.commentId} not found`);
+            err.status = 404;
+            return next(err);
+          }
+        })
+        .catch((err) => next(err));
+    }
+  );
 
 module.exports = partnerRouter;

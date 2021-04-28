@@ -47,7 +47,8 @@ partnerRouter
 partnerRouter
   .route("/:partnerId")
   .get((req, res, next) => {
-    partner.findById(req.params.partnerId)
+    partner
+      .findById(req.params.partnerId)
       .then((partner) => {
         res.statusCode = 200;
         res.setHeader("Content-Type", "application/json");
@@ -70,13 +71,14 @@ partnerRouter
       { new: true }
     )
       .then((partner) => {
-            .save()
-            .then((parnter) => {
-              res.statusCode = 200;
-              res.setHeader("Content-Type", "application/json");
-              res.json(parnter);
-            })
-            .catch((err) => next(err));
+        partner
+          .save()
+          .then((parnter) => {
+            res.statusCode = 200;
+            res.setHeader("Content-Type", "application/json");
+            res.json(parnter);
+          })
+          .catch((err) => next(err));
       })
       .catch((err) => next(err));
   })

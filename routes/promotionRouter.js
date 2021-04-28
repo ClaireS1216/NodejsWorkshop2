@@ -69,13 +69,14 @@ promotionRouter
       { new: true }
     )
       .then((promotion) => {
-            .save()
-            .then((promotion) => {
-              res.statusCode = 200;
-              res.setHeader("Content-Type", "application/json");
-              res.json(promotion);
-            })
-            .catch((err) => next(err));
+        promotion
+          .save()
+          .then((promotion) => {
+            res.statusCode = 200;
+            res.setHeader("Content-Type", "application/json");
+            res.json(promotion);
+          })
+          .catch((err) => next(err));
       })
       .catch((err) => next(err));
   })
